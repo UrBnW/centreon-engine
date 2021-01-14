@@ -55,7 +55,7 @@ class connector : public command, public process_listener {
  public:
   connector(std::string const& connector_name,
             std::string const& connector_line,
-            command_listener* listener = NULL);
+            command_listener* listener = nullptr);
   connector(connector const& right);
   ~connector() noexcept override;
   connector& operator=(connector const& right) = delete;

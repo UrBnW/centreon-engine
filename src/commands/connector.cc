@@ -68,9 +68,8 @@ connector::connector(std::string const& connector_name,
  *  @param[in] right Object to copy.
  */
 connector::connector(connector const& right)
-    : command(right), process_listener(right), _restart(nullptr) {
-  _internal_copy(right);
-}
+    : command(right), process_listener(right), _restart(nullptr),
+_is_running{false}, _query_quit_ok{false}, _query_version_ok{false}, _try_to_restart{true} {}
 
 /**
  *  Destructor.
@@ -474,18 +473,18 @@ void connector::_connector_start() {
  *
  *  @param[in] right  The object to copy.
  */
-void connector::_internal_copy(connector const& right) {
-  if (this != &right) {
-    command::operator=(right);
-    _data_available.clear();
-    _is_running = false;
-    _queries.clear();
-    _query_quit_ok = false;
-    _query_version_ok = false;
-    _results.clear();
-    _try_to_restart = true;
-  }
-}
+//void connector::_internal_copy(connector const& right) {
+//  if (this != &right) {
+//    command::operator=(right);
+//    _data_available.clear();
+//    _is_running = false;
+//    _queries.clear();
+//    _query_quit_ok = false;
+//    _query_version_ok = false;
+//    _results.clear();
+//    _try_to_restart = true;
+//  }
+//}
 
 /**
  *  Get the ending string for connector protocole.

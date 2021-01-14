@@ -56,15 +56,13 @@ forward::forward(std::string const& command_name,
  *
  *  @param[in] right Object to copy.
  */
-forward::forward(forward const& right)
-    : command(right), _command(right._command) {
-  _internal_copy(right);
-}
+forward::forward(const forward& right)
+    : command(right), _command(right._command) {}
 
 /**
  *  Destructor.
  */
-forward::~forward() throw() {}
+forward::~forward() noexcept {}
 
 /**
  *  Assignment operator.
@@ -73,10 +71,10 @@ forward::~forward() throw() {}
  *
  *  @return This object.
  */
-forward& forward::operator=(forward const& right) {
-  _internal_copy(right);
-  return (*this);
-}
+//forward& forward::operator=(const forward& right) {
+//  _internal_copy(right);
+//  return (*this);
+//}
 
 /**
  *  Get a pointer on a copy of the same object.
@@ -123,10 +121,10 @@ void forward::run(std::string const& processed_cmd,
  *
  *  @param[in] right  The object to copy.
  */
-void forward::_internal_copy(forward const& right) {
-  if (this != &right) {
-    command::operator=(right);
-    _command = right._command;
-  }
-  return;
-}
+//void forward::_internal_copy(const forward& right) {
+//  if (this != &right) {
+//    command::operator=(right);
+//    _command = right._command;
+//  }
+//  return;
+//}

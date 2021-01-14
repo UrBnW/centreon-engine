@@ -66,10 +66,10 @@ class raw : public command, public process_listener {
  public:
   raw(std::string const& name,
       std::string const& command_line,
-      command_listener* listener = NULL);
+      command_listener* listener = nullptr);
   raw(raw const& right);
   ~raw() noexcept override;
-  raw& operator=(raw const& right);
+  raw& operator=(raw const& right) = delete;
   command* clone() const override;
   uint64_t run(std::string const& process_cmd,
                nagios_macros& macros,

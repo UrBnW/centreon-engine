@@ -46,13 +46,22 @@ namespace commands {
  *  notify listener at the end of the command.
  */
 class command {
+ protected:
+  static uint64_t get_uniq_id();
+
+  std::string _command_line;
+  command_listener* _listener;
+  std::string _name;
+
  public:
   command(std::string const& name,
           std::string const& command_line,
-          command_listener* listener = NULL);
+          command_listener* listener = nullptr);
   virtual ~command() noexcept;
-  bool operator==(command const& right) const noexcept;
-  bool operator!=(command const& right) const noexcept;
+  command(const command&);
+  command& operator=(const command&) = delete;
+  bool operator==(const command& right) const noexcept;
+  bool operator!=(const command& right) const noexcept;
   virtual command* clone() const = 0;
   virtual std::string const& get_command_line() const noexcept;
   virtual std::string const& get_name() const noexcept;
@@ -67,15 +76,6 @@ class command {
   virtual void set_command_line(std::string const& command_line);
   void set_listener(command_listener* listener) noexcept;
   static command_map commands;
-
- protected:
-  command(command const& right);
-  command& operator=(command const& right);
-  static uint64_t get_uniq_id();
-
-  std::string _command_line;
-  command_listener* _listener;
-  std::string _name;
 };
 }  // namespace commands
 
