@@ -63,6 +63,7 @@ link_directories(${OpenSSL_LIB_DIRS})
 link_directories(${c-ares_LIB_DIRS})
 link_directories(${ZLIB_LIB_DIRS})
 link_directories(${json11_LIB_DIRS})
+link_directories(${fmt_LIB_DIRS})
 
 # Version.
 set(CENTREON_ENGINE_MAJOR 20)
@@ -620,7 +621,7 @@ include_directories(enginerpc)
 add_library(cce_core ${LIBRARY_TYPE} ${FILES})
 
 # Link target with required libraries.
-target_link_libraries(cce_core ${json11_LIBS}
+target_link_libraries(cce_core ${json11_LIBS} ${fmt_LIBS}
   ${MATH_LIBRARIES}
   ${PTHREAD_LIBRARIES}
   ${SOCKET_LIBRARIES}
