@@ -1,4 +1,17 @@
 ========================
+Centreon Engine 20.04.11
+========================
+
+*******
+Bug Fix
+*******
+
+Engine may crash with it is shutdown
+====================================
+Here is a patch to fix this issue. It was due to checks always running whereas
+the scheduler is switched off.
+
+========================
 Centreon Engine 20.04.10
 ========================
 
