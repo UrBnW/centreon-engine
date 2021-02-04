@@ -816,8 +816,8 @@ com::centreon::engine::service& engine::find_service(uint64_t host_id,
   service_id_map::const_iterator it(
       service::services_by_id.find({host_id, service_id}));
   if (it == service::services_by_id.end())
-    throw(engine_error() << "Service '" << service_id << "' on host '"
-                         << host_id << "' was not found");
+    throw engine_error() << "Service '" << service_id << "' on host '"
+                         << host_id << "' was not found";
   return *it->second;
 }
 
@@ -2317,30 +2317,8 @@ int service::run_async_check(int check_options,
 
   // Send broker event.
   timeval start_time = {0, 0};
-  timeval end_time = {0, 0};
-  int res =
-      broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE,
-                           NEBATTR_NONE, this, checkable::check_active,
-                           start_time, end_time, get_check_command().c_str(),
-                           get_latency(), 0.0, 0, false, 0, nullptr, nullptr);
 
   // Service check was cancelled by NEB module. reschedule check later.
-  if (NEBERROR_CALLBACKCANCEL == res) {
-    if (preferred_time != nullptr)
-      *preferred_time +=
-          static_cast<time_t>(get_check_interval() * config->interval_length());
-    logger(log_runtime_error, basic)
-        << "Error: Some broker module cancelled check of service '"
-        << get_description() << "' on host '" << get_hostname();
-    return ERROR;
-  }
-  // Service check was override by NEB module.
-  else if (NEBERROR_CALLBACKOVERRIDE == res) {
-    logger(dbg_functions, basic)
-        << "Some broker module overrode check of service '" << get_description()
-        << "' on host '" << get_hostname() << "' so we'll bail out";
-    return OK;
-  }
 
   // Checking starts.
   logger(dbg_checks, basic) << "Checking service '" << get_description()
@@ -2378,21 +2356,11 @@ int service::run_async_check(int check_options,
   std::string processed_cmd(cmd->process_cmd(macros));
 
   // Send event broker.
-  res =
-      broker_service_check(NEBTYPE_SERVICECHECK_INITIATE, NEBFLAG_NONE,
-                           NEBATTR_NONE, this, checkable::check_active,
-                           start_time, end_time, get_check_command().c_str(),
-                           get_latency(), 0.0, config->service_check_timeout(),
-                           false, 0, processed_cmd.c_str(), nullptr);
 
   // Restore latency.
   set_latency(old_latency);
 
   // Service check was override by neb_module.
-  if (NEBERROR_CALLBACKOVERRIDE == res) {
-    clear_volatile_macros_r(macros);
-    return OK;
-  }
 
   // Update statistics.
   update_check_stats(scheduled_check ? ACTIVE_SCHEDULED_SERVICE_CHECK_STATS
