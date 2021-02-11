@@ -200,18 +200,16 @@ int neb_reload_module(void* mod) {
 int neb_unload_all_modules(int flags, int reason) {
   int retval;
   try {
-    broker::loader* loader(&broker::loader::instance());
-    if (loader) {
-      std::list<std::shared_ptr<broker::handle> > modules(
-          loader->get_modules());
-      for (std::list<std::shared_ptr<broker::handle> >::const_iterator
-               it(modules.begin()),
-           end(modules.end());
-           it != end; ++it)
-        neb_unload_module(&**it, flags, reason);
-      loader->unload_modules();
-      logger(dbg_eventbroker, basic) << "All modules got successfully unloaded";
-    }
+    broker::loader& loader(broker::loader::instance());
+    std::list<std::shared_ptr<broker::handle> > modules(
+        loader.get_modules());
+    for (std::list<std::shared_ptr<broker::handle> >::const_iterator
+             it = modules.begin(),
+         end = modules.end();
+         it != end; ++it)
+      neb_unload_module((*it).get(), flags, reason);
+    loader.unload_modules();
+    logger(dbg_eventbroker, basic) << "All modules got successfully unloaded";
     retval = OK;
   } catch (std::exception const& e) {
     logger(log_runtime_error, basic)
@@ -230,12 +228,12 @@ int neb_unload_module(void* mod, int flags, int reason) {
   (void)flags;
   (void)reason;
 
-  if (mod == NULL)
+  if (mod == nullptr)
     return ERROR;
 
   broker::handle* module = static_cast<broker::handle*>(mod);
 
-  if (module->is_loaded() == false)
+  if (!module->is_loaded())
     return OK;
 
   logger(dbg_eventbroker, basic)
@@ -376,17 +374,15 @@ int neb_register_callback(int callback_type,
 
 /* dregisters all callback functions for a given module */
 int neb_deregister_module_callbacks(void* mod) {
-  nebcallback* temp_callback;
-  nebcallback* next_callback{NULL};
-  int callback_type;
+  nebcallback* next_callback{nullptr};
 
   if (!mod)
     return NEBERROR_NOMODULE;
 
-  for (callback_type = 0; callback_type < NEBCALLBACK_NUMITEMS;
+  for (int callback_type = 0; callback_type < NEBCALLBACK_NUMITEMS;
        callback_type++) {
-    for (temp_callback = neb_callback_list[callback_type];
-         temp_callback != NULL; temp_callback = next_callback) {
+    for (nebcallback* temp_callback = neb_callback_list[callback_type];
+         temp_callback != nullptr; temp_callback = next_callback) {
       next_callback = temp_callback->next;
       if ((void*)temp_callback->module_handle == (void*)mod) {
         union {

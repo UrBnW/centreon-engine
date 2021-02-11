@@ -220,7 +220,7 @@ class service : public notifier {
   time_t _last_time_warning;
   time_t _last_time_unknown;
   time_t _last_time_critical;
-  int _is_volatile;
+  bool _is_volatile;
   enum service_state _initial_state;
   enum service_state _current_state;
   enum service_state _last_hard_state;
