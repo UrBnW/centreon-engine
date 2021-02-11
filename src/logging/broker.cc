@@ -109,7 +109,8 @@ void broker::log(uint64_t types,
 
       // Copy message because broker module might modify it.
       unique_array_ptr<char> copy(new char[size + 1]);
-      strcpy(copy.get(), message);
+      strncpy(copy.get(), message, size);
+      copy.get()[size] = 0;
 
       // Event broker callback.
       broker_log_data(NEBTYPE_LOG_DATA, NEBFLAG_NONE, NEBATTR_NONE, copy.get(),

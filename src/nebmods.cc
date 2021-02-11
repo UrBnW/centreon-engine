@@ -464,8 +464,6 @@ int neb_make_callbacks(int callback_type, void* data) {
     neb.data = temp_callback->callback_func;
     cbresult = (*neb.func)(callback_type, data);
 
-    temp_callback = next_callback;
-
     total_callbacks++;
     if (callback_type != NEBCALLBACK_LOG_DATA) {
       logger(dbg_eventbroker, most)
