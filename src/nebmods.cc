@@ -22,7 +22,6 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
-#include "com/centreon/engine/broker/handle.hh"
 #include "com/centreon/engine/broker/loader.hh"
 #include "com/centreon/engine/globals.hh"
 #include "com/centreon/engine/logging/logger.hh"
@@ -201,11 +200,10 @@ int neb_unload_all_modules(int flags, int reason) {
   int retval;
   try {
     broker::loader& loader(broker::loader::instance());
-    std::list<std::shared_ptr<broker::handle> > modules(
-        loader.get_modules());
+    std::list<std::shared_ptr<broker::handle> > modules(loader.get_modules());
     for (std::list<std::shared_ptr<broker::handle> >::const_iterator
              it = modules.begin(),
-         end = modules.end();
+             end = modules.end();
          it != end; ++it)
       neb_unload_module((*it).get(), flags, reason);
     loader.unload_modules();
@@ -224,14 +222,12 @@ int neb_unload_all_modules(int flags, int reason) {
 }
 
 /* close (unload) a particular module */
-int neb_unload_module(void* mod, int flags, int reason) {
+int neb_unload_module(broker::handle* module, int flags, int reason) {
   (void)flags;
   (void)reason;
 
-  if (mod == nullptr)
+  if (module == nullptr)
     return ERROR;
-
-  broker::handle* module = static_cast<broker::handle*>(mod);
 
   if (!module->is_loaded())
     return OK;
