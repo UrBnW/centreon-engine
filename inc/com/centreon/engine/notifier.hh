@@ -130,7 +130,8 @@ class notifier : public checkable {
            bool obsess_over,
            std::string const& timezone,
            bool retain_status_information,
-           bool retain_nonstatus_information);
+           bool retain_nonstatus_information,
+           bool is_volatile);
   ~notifier();
 
   void set_notification(int32_t idx, std::string const& value);
@@ -263,11 +264,12 @@ class notifier : public checkable {
   int get_pending_flex_downtime() const;
   void inc_pending_flex_downtime() noexcept;
   void dec_pending_flex_downtime() noexcept;
-  virtual bool get_is_volatile() const = 0;
   void set_flap_type(uint32_t type) noexcept;
   timeperiod* get_notification_period_ptr() const noexcept;
   void set_notification_period_ptr(timeperiod* tp) noexcept;
   int get_acknowledgement_timeout() const noexcept;
+  bool get_is_volatile() const noexcept;
+  void set_is_volatile(bool vol);
 
   map_customvar custom_variables;
 
@@ -322,6 +324,12 @@ class notifier : public checkable {
   bool _retain_nonstatus_information;
   bool _is_being_freshened;
   
+  bool _is_volatile;
+
+  /*if notification_interval at 0 and is on time period off.
+  is set as true to send the notification on the next starting time period*/
+  bool _notification_to_interval_on_timeperiod_in;
+
   /* New ones */
   int _notification_number;
   // reason_type _type;
