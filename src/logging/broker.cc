@@ -1,5 +1,5 @@
 /*
-** Copyright 2011-2013 Merethis
+** Copyright 2011-2021 Centreon
 **
 ** This file is part of Centreon Engine.
 **
@@ -16,7 +16,6 @@
 ** along with Centreon Engine. If not, see
 ** <http://www.gnu.org/licenses/>.
 */
-
 #include "com/centreon/engine/broker.hh"
 #include <cstring>
 #include <mutex>
@@ -28,12 +27,6 @@
 
 using namespace com::centreon;
 using namespace com::centreon::engine::logging;
-
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
 
 /**
  *  Default constructor.

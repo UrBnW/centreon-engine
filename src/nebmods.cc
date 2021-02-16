@@ -421,13 +421,13 @@ int neb_deregister_callback(int callback_type,
   }
 
   /* we couldn't find the callback */
-  if (temp_callback == NULL)
+  if (temp_callback == nullptr)
     return NEBERROR_CALLBACKNOTFOUND;
 
   else {
     /* only one item in the list */
     if (temp_callback != last_callback->next)
-      neb_callback_list[callback_type] = NULL;
+      neb_callback_list[callback_type] = nullptr;
     else
       last_callback->next = next_callback;
     delete temp_callback;

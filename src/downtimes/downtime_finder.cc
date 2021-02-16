@@ -90,6 +90,10 @@ downtime_finder::result_set downtime_finder::find_matching_all(
                   *std::static_pointer_cast<service_downtime>(dt.second), *it))
             matched_all = false;
           break;
+        case downtime::any_downtime:
+          /* This case does not need to be handled here. A downtime concerns a
+           * host or a service. */
+          break;
       }
     }
 

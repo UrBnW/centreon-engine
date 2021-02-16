@@ -451,11 +451,10 @@ void loop::adjust_check_scheduling() {
   double last_check_exec_time(0.0);
   double total_check_exec_time(0.0);
   int adjust_scheduling(false);
-  int current_check(0);
   int total_checks(0);
   time_t last_check_time(0L);
-  host* hst(NULL);
-  com::centreon::engine::service* svc(NULL);
+  host* hst(nullptr);
+  com::centreon::engine::service* svc(nullptr);
 
   logger(dbg_functions, basic) << "adjust_check_scheduling()";
 
@@ -541,12 +540,18 @@ void loop::adjust_check_scheduling() {
     exec_time_factor = 1.0;
   }
 
+  auto compute_new_run_time = [](double current_exec_time_offset,
+                                 double current_icd_offset,
+                                 time_t first_window_time) {
+    double offset = current_exec_time_offset + current_icd_offset;
+    time_t retval = first_window_time + static_cast<unsigned long>(offset);
+    return retval;
+  };
   // adjust check scheduling.
   double current_icd_offset(inter_check_delay / 2.0);
-  for (timed_event_list::iterator it{_event_list_low.begin()},
-       end{_event_list_low.end()};
-       it != end;
-       ++it) {
+  for (timed_event_list::iterator it = _event_list_low.begin(),
+                                  end = _event_list_low.end();
+       it != end; ++it) {
     // skip events outside of our current window.
     if ((*it)->run_time <= first_window_time)
       continue;
@@ -562,8 +567,13 @@ void loop::adjust_check_scheduling() {
         continue;
 
       current_exec_time =
-          ((hst->get_execution_time() + projected_host_check_overhead) *
-           exec_time_factor);
+          (hst->get_execution_time() + projected_host_check_overhead) *
+          exec_time_factor;
+      time_t new_run_time = compute_new_run_time(
+          current_exec_time_offset, current_icd_offset, first_window_time);
+      (*it)->run_time = new_run_time;
+      hst->set_next_check(new_run_time);
+      hst->update_status();
     } else if ((*it)->event_type == timed_event::EVENT_SERVICE_CHECK) {
       if (!(svc = (com::centreon::engine::service*)(*it)->event_data))
         continue;
@@ -574,24 +584,14 @@ void loop::adjust_check_scheduling() {
 
       // NOTE: service check execution time is not taken into
       // account, as service checks are run in parallel.
-      current_exec_time = (projected_service_check_overhead * exec_time_factor);
-    } else
-      continue;
-
-    ++current_check;
-    double new_run_time_offset(current_exec_time_offset + current_icd_offset);
-    time_t new_run_time(
-        (time_t)(first_window_time + (unsigned long)new_run_time_offset));
-
-    if ((*it)->event_type == timed_event::EVENT_HOST_CHECK) {
-      (*it)->run_time = new_run_time;
-      hst->set_next_check(new_run_time);
-      hst->update_status();
-    } else {
+      current_exec_time = projected_service_check_overhead * exec_time_factor;
+      time_t new_run_time = compute_new_run_time(
+          current_exec_time_offset, current_icd_offset, first_window_time);
       (*it)->run_time = new_run_time;
       svc->set_next_check(new_run_time);
       svc->update_status();
-    }
+    } else
+      continue;
 
     current_icd_offset += inter_check_delay;
     current_exec_time_offset += current_exec_time;

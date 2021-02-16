@@ -93,7 +93,8 @@ static std::string execute_process(std::vector<std::string> const& argv,
       outfile << "execute process segfault!!!\n";
       outfile.close();
 
-      char* ptr(NULL);
+      /* Here is the segfault in action */
+      char* ptr = nullptr;
       ptr[0] = 0;
 
     } else
