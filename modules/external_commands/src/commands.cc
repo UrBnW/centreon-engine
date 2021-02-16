@@ -76,7 +76,7 @@ int check_for_external_commands() {
 
   /* process all commands found in the buffer */
   char* buffer(nullptr);
-  while (1) {
+  for (;;) {
     /* get a lock on the buffer */
     pthread_mutex_lock(&external_command_buffer.buffer_lock);
 
@@ -271,6 +271,9 @@ int cmd_delete_all_comments(int cmd, char* args) {
       temp_service = found->second.get();
     if (temp_service == nullptr)
       return ERROR;
+    /* delete comments */
+    comment::delete_service_comments(temp_service->get_host_id(),
+                                     temp_service->get_service_id());
   }
   else {
     /* else verify that the host is valid */
@@ -279,15 +282,9 @@ int cmd_delete_all_comments(int cmd, char* args) {
       temp_host = it->second.get();
     if (temp_host == nullptr)
       return ERROR;
-  }
-
-  /* delete comments */
-  if (cmd == CMD_DEL_ALL_HOST_COMMENTS)
+    /* delete comments */
     comment::delete_host_comments(temp_host->get_host_id());
-  else
-    comment::delete_service_comments(temp_service->get_host_id(),
-                                     temp_service->get_service_id());
-
+  }
   return OK;
 }
 
@@ -1089,17 +1086,14 @@ int cmd_delete_downtime_full(int cmd, char* args) {
   if (*temp_ptr)
     criterias.push_back(downtime_finder::criteria("host", temp_ptr));
   // Service description and downtime type.
-  downtime::type downtime_type;
   if (cmd == CMD_DEL_SVC_DOWNTIME_FULL) {
-    downtime_type = downtime::service_downtime;
     if (!(temp_ptr = my_strtok(nullptr, ";")))
       return ERROR;
     if (*temp_ptr)
       criterias.push_back(downtime_finder::criteria("service", temp_ptr));
-  } else {
-    downtime_type = downtime::host_downtime;
+  } else
     criterias.push_back(downtime_finder::criteria("service", ""));
-  }
+
   // Start time.
   if (!(temp_ptr = my_strtok(nullptr, ";")))
     return ERROR;

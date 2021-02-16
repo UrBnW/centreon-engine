@@ -1366,7 +1366,7 @@ class EngineRPCClient {
 };
 
 int main(int argc, char** argv) {
-  int32_t status;
+  int32_t status = 0;
   EngineRPCClient client(grpc::CreateChannel(
       "127.0.0.1:40001", grpc::InsecureChannelCredentials()));
 
@@ -2417,7 +2417,7 @@ int main(int argc, char** argv) {
     status = client.ChangeHostObjectCustomVar(hostname, varname, varvalue,
                                               &response);
     std::cout << "ChangeHostObjectCustomVar" << std::endl;
-  } 
+  }
   else if (strcmp(argv[1], "ChangeServiceObjectCustomVar") == 0) {
     CommandSuccess response;
     std::string hostname(argv[2]);
@@ -2428,7 +2428,7 @@ int main(int argc, char** argv) {
     status = client.ChangeServiceObjectCustomVar(hostname, servicedesc, varname,
                                                  varvalue, &response);
     std::cout << "ChangeServiceObjectCustomVar" << std::endl;
-  } 
+  }
   else if (strcmp(argv[1], "ChangeContactObjectCustomVar") == 0) {
     CommandSuccess response;
     std::string contact(argv[2]);
@@ -2438,7 +2438,7 @@ int main(int argc, char** argv) {
     status = client.ChangeContactObjectCustomVar(contact, varname, varvalue,
                                                  &response);
     std::cout << "ChangeContactObjectCustomVar" << std::endl;
-  } 
+  }
   else if (strcmp(argv[1], "ChangeHostObjectCharVar") == 0) {
     CommandSuccess response;
     std::string hostname(argv[2]);
@@ -2447,7 +2447,7 @@ int main(int argc, char** argv) {
 
     status = client.ChangeHostObjectCharVar(hostname, mode, charval, &response);
     std::cout << "ChangeHostObjectCharVar " << status << std::endl;
-  } 
+  }
   else if (strcmp(argv[1], "ChangeServiceObjectCharVar") == 0) {
     CommandSuccess response;
     std::string hostname(argv[2]);
@@ -2458,7 +2458,7 @@ int main(int argc, char** argv) {
     status = client.ChangeServiceObjectCharVar(hostname, servicedesc, mode,
                                                charval, &response);
     std::cout << "ChangeServiceObjectCharVar " << status << std::endl;
-  } 
+  }
   else if (strcmp(argv[1], "ChangeContactObjectCharVar") == 0) {
     CommandSuccess response;
     std::string contact(argv[2]);
@@ -2468,7 +2468,7 @@ int main(int argc, char** argv) {
     status =
         client.ChangeContactObjectCharVar(contact, mode, charval, &response);
     std::cout << "ChangeContactObjectCharVar " << status << std::endl;
-  } 
+  }
 
   exit(status);
 }

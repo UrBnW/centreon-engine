@@ -155,7 +155,7 @@ grpc::Status engine_impl::NewThresholdsFile(grpc::ServerContext* context
  * @param context gRPC context
  * @param request Host's identifier (it can be a hostname or a hostid)
  * @param response The filled fields
- * 
+ *
  *@return Status::OK
  */
 grpc::Status engine_impl::GetHost(grpc::ServerContext* context
@@ -518,22 +518,17 @@ grpc::Status engine_impl::AddHostComment(grpc::ServerContext* context
                                          CommandSuccess* response) {
   auto fn = std::packaged_task<int32_t(void)>([request]() -> int32_t {
     std::shared_ptr<engine::host> temp_host;
-    int32_t persistent;
     /* get the host */
     auto it = host::hosts.find(request->host_name());
     if (it != host::hosts.end())
       temp_host = it->second;
     if (temp_host == nullptr)
       return 1;
-    if (request->persistent() > 1)
-      persistent = 1;
-    else if (request->persistent() < 0)
-      persistent = 0;
     /* add the comment */
     auto cmt = std::make_shared<comment>(
         comment::host, comment::user, temp_host->get_host_id(), 0,
         request->entry_time(), request->user(), request->comment_data(),
-        persistent, comment::external, false, (time_t)0);
+        request->persistent(), comment::external, false, (time_t)0);
     comment::comments.insert({cmt->get_comment_id(), cmt});
     return 0;
   });
@@ -568,7 +563,6 @@ grpc::Status engine_impl::AddServiceComment(grpc::ServerContext* context
   auto fn = std::packaged_task<int32_t(void)>([request]() -> int32_t {
     std::shared_ptr<engine::host> temp_host;
     std::shared_ptr<engine::service> temp_service;
-    int32_t persistent;
     /* get the service */
     auto it =
         service::services.find({request->host_name(), request->svc_desc()});
@@ -581,15 +575,11 @@ grpc::Status engine_impl::AddServiceComment(grpc::ServerContext* context
       temp_host = it2->second;
     if (temp_host == nullptr)
       return 1;
-    if (request->persistent() > 1)
-      persistent = 1;
-    else if (request->persistent() < 0)
-      persistent = 0;
     /* add the comment */
     auto cmt = std::make_shared<comment>(
         comment::service, comment::user, temp_host->get_host_id(),
         temp_service->get_service_id(), request->entry_time(), request->user(),
-        request->comment_data(), persistent, comment::external, false,
+        request->comment_data(), request->persistent(), comment::external, false,
         (time_t)0);
     if (cmt == nullptr)
       return 1;
@@ -1807,7 +1797,7 @@ grpc::Status engine_impl::DeleteDowntimeByHostGroupName(
     std::string host_name;
     std::string service_desc;
     std::string comment_data;
-    uint32_t deleted;
+    uint32_t deleted = 0;
 
     auto it = hostgroup::hostgroups.find(host_group_name);
     if (it == hostgroup::hostgroups.end() || !it->second)
@@ -2089,14 +2079,14 @@ grpc::Status engine_impl::DelayHostNotification(
     std::shared_ptr<engine::host> temp_host;
 
     switch (request->identifier_case()) {
-      case HostIdentifier::kName: {
+      case HostDelayIdentifier::kName: {
         auto it = host::hosts.find(request->name());
         if (it != host::hosts.end())
           temp_host = it->second;
         if (temp_host == nullptr)
           return 1;
       } break;
-      case HostIdentifier::kId: {
+      case HostDelayIdentifier::kId: {
         auto it = host::hosts_by_id.find(request->id());
         if (it != host::hosts_by_id.end())
           temp_host = it->second;
@@ -2137,7 +2127,7 @@ grpc::Status engine_impl::DelayServiceNotification(
     std::shared_ptr<engine::service> temp_service;
 
     switch (request->identifier_case()) {
-      case ServiceIdentifier::kNames: {
+      case ServiceDelayIdentifier::kNames: {
         NameIdentifier names = request->names();
         auto it =
             service::services.find({names.host_name(), names.service_name()});
@@ -2146,7 +2136,7 @@ grpc::Status engine_impl::DelayServiceNotification(
         if (temp_service == nullptr)
           return 1;
       } break;
-      case ServiceIdentifier::kIds: {
+      case ServiceDelayIdentifier::kIds: {
         IdIdentifier ids = request->ids();
         auto it =
             service::services_by_id.find({ids.host_id(), ids.service_id()});

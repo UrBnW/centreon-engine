@@ -882,27 +882,6 @@ TEST_F(ServiceNotification, ServiceEscalationCG) {
                "NOTIFICATIONISESCALATED: 1 SERVICENOTIFICATIONNUMBER: 4",
                step11 + 1)};
   size_t step13{out.find("NOW = 53000", step12 + 1)};
-  size_t step14{
-      out.find("SERVICE NOTIFICATION: "
-               "test_contact;test_host;test_svc;CRITICAL;cmd;service critical",
-               step13 + 1)};
-  size_t step15{
-      out.find("NOTIFICATIONTYPE: PROBLEM NOTIFICATIONNUMBER: 5 "
-               "NOTIFICATIONISESCALATED: 1 SERVICENOTIFICATIONNUMBER: 5",
-               step14 + 1)};
-  size_t step16{out.find("NOW = 53600", step15 + 1)};
-  size_t step17{
-      out.find("SERVICE NOTIFICATION: "
-               "test_contact;test_host;test_svc;CRITICAL;cmd;service critical",
-               step16 + 1)};
-  size_t step18{
-      out.find("NOTIFICATIONTYPE: PROBLEM NOTIFICATIONNUMBER: 6 "
-               "NOTIFICATIONISESCALATED: 1 SERVICENOTIFICATIONNUMBER: 6",
-               step17 + 1)};
-  size_t step19{
-      out.find("SERVICE NOTIFICATION: test_contact;test_host;test_svc;RECOVERY "
-               "(OK);cmd;service ok",
-               step18 + 1)};
   ASSERT_NE(step13, std::string::npos);
 }
 
