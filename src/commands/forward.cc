@@ -52,38 +52,9 @@ forward::forward(std::string const& command_name,
 }
 
 /**
- *  Copy constructor
- *
- *  @param[in] right Object to copy.
- */
-forward::forward(const forward& right)
-    : command(right), _command(right._command) {}
-
-/**
  *  Destructor.
  */
 forward::~forward() noexcept {}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] right Object to copy.
- *
- *  @return This object.
- */
-//forward& forward::operator=(const forward& right) {
-//  _internal_copy(right);
-//  return (*this);
-//}
-
-/**
- *  Get a pointer on a copy of the same object.
- *
- *  @return Return a pointer on a copy object.
- */
-com::centreon::engine::commands::command* forward::clone() const {
-  return (new forward(*this));
-}
 
 /**
  *  Run a command.
@@ -121,7 +92,7 @@ void forward::run(std::string const& processed_cmd,
  *
  *  @param[in] right  The object to copy.
  */
-//void forward::_internal_copy(const forward& right) {
+// void forward::_internal_copy(const forward& right) {
 //  if (this != &right) {
 //    command::operator=(right);
 //    _command = right._command;

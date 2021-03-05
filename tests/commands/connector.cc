@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Centreon (https://www.centreon.com/)
+ * Copyright 2019-2021 Centreon (https://www.centreon.com/)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "com/centreon/engine/commands/connector.hh"
 #include <gtest/gtest.h>
+#include <signal.h>
 #include <condition_variable>
 #include <mutex>
 #include "../timeperiod/utils.hh"
@@ -30,16 +31,31 @@ using namespace com::centreon;
 using namespace com::centreon::engine;
 using namespace com::centreon::engine::commands;
 
+class my_listener : public commands::command_listener {
+ public:
+  result const& get_result() const {
+    std::lock_guard<std::mutex> guard(_mutex);
+    return _res;
+  }
+
+  void finished(result const& res) throw() override {
+    std::lock_guard<std::mutex> guard(_mutex);
+    _res = res;
+  }
+
+ private:
+  mutable std::mutex _mutex;
+  commands::result _res;
+};
 
 class Connector : public ::testing::Test {
  public:
   void SetUp() override {
+    signal(SIGPIPE, SIG_IGN);
     init_config_state();
   }
 
-  void TearDown() override {
-    deinit_config_state();
-  }
+  void TearDown() override { deinit_config_state(); }
 };
 
 class wait_process : public commands::command_listener {
@@ -98,55 +114,58 @@ TEST_F(Connector, ForwardWithoutCmd) {
 TEST_F(Connector, SimpleConnector) {
   commands::connector c("toto", "/bin/ls");
 }
-/*
-// Given a connector that segfault.
-// Then engine does not crash and executes the next check.
-TEST_F(Connector, NewConnectorSync) {
-  nagios_macros macros = nagios_macros();
-  commands::connector c("test segfault",
-                        "tests/bin_connector_test_run --kill=2");
-  commands::forward f("after segfault",
-                      "test/bin_connector_test_run --timeout=on", c);
-  wait_process w(&c);
-  unsigned long id = f.run(f.get_command_line(), macros, 0);
-  w.wait();
 
-  result const& res{w.get_result()};
-  ASSERT_EQ(res.command_id, id);
-  ASSERT_EQ(res.exit_code, 0);
-  ASSERT_EQ(res.output, f.get_command_line());
-  ASSERT_EQ(res.exit_status, process::normal);
-}
-
+// This test is just a test of the run command in usual conditions.
+// We don't test timeout because time is replaced by a fake function
+// and we don't control it during the execution of run().
 TEST_F(Connector, RunWithTimeout) {
   nagios_macros macros = nagios_macros();
   connector cmd_connector("RunWithTimeout", "tests/bin_connector_test_run");
-  forward cmd_forward("RunWithTimeout",
-                      "tests/bin_connector_test_run --timeout=on",
-                      cmd_connector);
-
   result res;
-  cmd_forward.run(cmd_forward.get_command_line(), macros, 1, res);
+  cmd_connector.run("commande --timeout=on", macros, 1, res);
 
   ASSERT_TRUE(res.command_id != 0);
-  ASSERT_TRUE(res.exit_code == engine::service::state_unknown);
-  ASSERT_EQ(res.output, "(Process Timeout)");
-  ASSERT_TRUE(res.exit_status == process::timeout);
 }
 
-TEST_F(Connector, RunWithoutTimeout) {
+TEST_F(Connector, RunConnectorAsync) {
+  std::unique_ptr<my_listener> lstnr(new my_listener);
   nagios_macros macros = nagios_macros();
-  connector cmd_connector("RunWithoutTimeout", "tests/bin_connector_test_run");
-  forward cmd_forward("RunWithoutTimeout",
-                      "tests/bin_connector_test_run --timeout=off",
-                      cmd_connector);
+  connector cmd_connector("RunConnectorAsync", "tests/bin_connector_test_run");
+  cmd_connector.set_listener(lstnr.get());
+  std::cout << "Run... 1\n";
+  cmd_connector.run("commande", macros, 1);
+  std::cout << "Run... 2\n";
 
-  result res;
-  cmd_forward.run(cmd_forward.get_command_line(), macros, 0, res);
-
-  ASSERT_TRUE(res.command_id != 0);
-  ASSERT_TRUE(res.exit_code == engine::service::state_ok);
-  ASSERT_EQ(res.output, cmd_forward.get_command_line());
-  ASSERT_TRUE(res.exit_status == process::normal);
+  int timeout = 0;
+  int max_timeout{15};
+  while (timeout < max_timeout && lstnr->get_result().output == "") {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_time(std::time(nullptr) + 1);
+    ++timeout;
+  }
+  result res{lstnr->get_result()};
+  ASSERT_NE(res.command_id, 0);
+  ASSERT_EQ(res.output, "commande");
 }
-*/
+
+TEST_F(Connector, RunWithConnectorSwitchedOff) {
+  std::unique_ptr<my_listener> lstnr(new my_listener);
+  nagios_macros macros = nagios_macros();
+  connector cmd_connector("RunWithConnectorSwitchedOff",
+                          "tests/bin_connector_test_run");
+  cmd_connector.set_listener(lstnr.get());
+  std::cout << "Run... 1\n";
+  cmd_connector.run("commande --kill=1", macros, 1);
+  std::cout << "Run... 2\n";
+
+  int timeout = 0;
+  int max_timeout{15};
+  while (timeout < max_timeout && lstnr->get_result().output == "") {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_time(std::time(nullptr) + 1);
+    ++timeout;
+  }
+  result res{lstnr->get_result()};
+  ASSERT_EQ(res.command_id, 0);
+  ASSERT_EQ(res.output, "");
+}

@@ -46,13 +46,6 @@ raw::raw(std::string const& name,
 }
 
 /**
- *  Copy constructor
- *
- *  @param[in] right Object to copy.
- */
-raw::raw(raw const& right) : command(right), process_listener(right) {}
-
-/**
  *  Destructor.
  */
 raw::~raw() noexcept {
@@ -71,28 +64,6 @@ raw::~raw() noexcept {
     logger(log_runtime_error, basic)
         << "Error: Raw command destructor failed: " << e.what();
   }
-}
-
-/**
- *  Assignment operator.
- *
- *  @param[in] right Object to copy.
- *
- *  @return This object.
- */
-//raw& raw::operator=(raw const& right) {
-//  if (this != &right)
-//    command::operator=(right);
-//  return *this;
-//}
-
-/**
- *  Get a pointer on a copy of the same object.
- *
- *  @return Return a pointer on a copy object.
- */
-commands::command* raw::clone() const {
-  return new raw(*this);
 }
 
 /**

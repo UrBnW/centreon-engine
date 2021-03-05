@@ -62,7 +62,6 @@ class command {
   command& operator=(const command&) = delete;
   bool operator==(const command& right) const noexcept;
   bool operator!=(const command& right) const noexcept;
-  virtual command* clone() const = 0;
   virtual std::string const& get_command_line() const noexcept;
   virtual std::string const& get_name() const noexcept;
   virtual std::string process_cmd(nagios_macros* macros) const;
