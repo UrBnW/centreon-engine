@@ -43,6 +43,11 @@ class my_listener : public commands::command_listener {
     _res = res;
   }
 
+  void clear() {
+    _res.command_id = 0;
+    _res.output = "";
+  }
+
  private:
   mutable std::mutex _mutex;
   commands::result _res;
@@ -168,4 +173,38 @@ TEST_F(Connector, RunWithConnectorSwitchedOff) {
   result res{lstnr->get_result()};
   ASSERT_EQ(res.command_id, 0);
   ASSERT_EQ(res.output, "");
+}
+
+TEST_F(Connector, RunConnectorSetCommandLine) {
+  my_listener lstnr;
+  nagios_macros macros = nagios_macros();
+  connector cmd_connector("SetCommandLine", "tests/bin_connector_test_run");
+  cmd_connector.set_listener(&lstnr);
+  cmd_connector.run("commande1", macros, 1);
+
+  int timeout = 0;
+  int max_timeout{15};
+  while (timeout < max_timeout && lstnr.get_result().output == "") {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_time(std::time(nullptr) + 1);
+    ++timeout;
+  }
+  result res{lstnr.get_result()};
+  ASSERT_NE(res.command_id, 0);
+  ASSERT_EQ(res.output, "commande1");
+
+  lstnr.clear();
+  cmd_connector.set_command_line("tests/bin_connector_test_run");
+  cmd_connector.run("commande2", macros, 1);
+
+  timeout = 0;
+  max_timeout = 15;
+  while (timeout < max_timeout && lstnr.get_result().output == "") {
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_time(std::time(nullptr) + 1);
+    ++timeout;
+  }
+  res = lstnr.get_result();
+  ASSERT_NE(res.command_id, 0);
+  ASSERT_EQ(res.output, "commande2");
 }

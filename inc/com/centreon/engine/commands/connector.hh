@@ -62,6 +62,19 @@ namespace commands {
  *  to the connector. Those internal functions all begins with _recv_query_ or
  *  _send_query_.
  *
+ *  The connector is connected to an external program named connector and also
+ *  has an internal thread used to restart the connector if needed. So, we have
+ *  several variables to control all that:
+ *  * _is_running: the connector is up and running.
+ *  * _try_to_restart: This boolean tells if the connector is stopped, if we
+ *    should start it again. Usually it is the case but when we want to stop
+ *    everything, we don't want.
+ *  * _thread_running: The thread is running, so it is possible to restart the
+ *    the connector.
+ *  * _thread_action: This enum asks the thread to start/stop the connector.
+ *  * _thread_cv: Here is the condition variable used in pair with
+ *    _thread_action.
+ *
  */
 class connector : public command, public process_listener {
   struct query_info {
@@ -71,6 +84,7 @@ class connector : public command, public process_listener {
     bool waiting_result;
   };
 
+  enum thread_action { none, start, stop };
   std::condition_variable _cv_query;
   std::string _data_available;
   bool _is_running;
@@ -80,11 +94,14 @@ class connector : public command, public process_listener {
   mutable std::mutex _lock;
   process _process;
   std::unordered_map<uint64_t, result> _results;
-  std::condition_variable _restart_cv;
   bool _try_to_restart;
-  bool _restart_running;
+
   std::thread _restart;
-  bool _restart_now;
+  bool _thread_running;
+  thread_action _thread_action;
+  std::mutex _thread_m;
+  std::condition_variable _thread_cv;
+
   void data_is_available(process& p) noexcept override;
   void data_is_available_err(process& p) noexcept override;
   void finished(process& p) noexcept override;
