@@ -16,8 +16,6 @@
  * For more information : contact@centreon.com
  *
  */
-#include <iostream>
-
 #include "com/centreon/engine/commands/connector.hh"
 #include <cstdlib>
 #include <list>
@@ -70,13 +68,19 @@ connector::connector(std::string const& connector_name,
  */
 connector::~connector() noexcept {
   logger(dbg_commands, basic) << "connector::~connector";
+  {
+    std::lock_guard<std::mutex> lck(_lock);
+    _try_to_restart = false;
+  }
+
   // Wait restart thread.
-  std::unique_lock<std::mutex> lck(_thread_m);
-  _thread_action = stop;
-  std::cout << "thread action stop\n";
-  _thread_cv.notify_all();
-  lck.unlock();
-  _restart.join();
+  {
+    std::unique_lock<std::mutex> lck(_thread_m);
+    _thread_action = stop;
+    _thread_cv.notify_all();
+    lck.unlock();
+    _restart.join();
+  }
 
   // Close connector properly.
   _connector_close();
@@ -327,8 +331,13 @@ void connector::finished(process& p) noexcept {
     }
 
     // The connector is stop, restart it if necessary.
-    if (_try_to_restart)
+    if (_try_to_restart && !sigshutdown)
       restart_connector();
+    else if (sigshutdown) {
+      std::lock_guard<std::mutex> lck(_thread_m);
+      _thread_action = stop;
+      _thread_cv.notify_all();
+    }
     // Connector probably quit without sending exit return.
     else
       _cv_query.notify_all();
@@ -393,7 +402,6 @@ void connector::_connector_start() {
     _query_quit_ok = false;
     _query_version_ok = false;
     _is_running = false;
-    std::cout << "is running false\n";
   }
 
   // Start connector execution.
@@ -413,7 +421,6 @@ void connector::_connector_start() {
     if (is_timeout || !_query_version_ok) {
       _process.kill();
       _try_to_restart = false;
-      std::cout << "try to restart false\n";
       _thread_cv.notify_all();
 
       if (is_timeout)
@@ -423,7 +430,6 @@ void connector::_connector_start() {
                            << "': Bad protocol version";
     }
     _is_running = true;
-    std::cout << "is running true\n";
   }
 
   logger(log_info_message, basic) << "Connector '" << _name << "' has started";
@@ -453,7 +459,7 @@ void connector::_connector_start() {
  *  @return The ending string.
  */
 std::string const& connector::_query_ending() const noexcept {
-  static std::string ending(3, '\0');
+  const static std::string ending(3, '\0');
   return ending;
 }
 
@@ -706,7 +712,8 @@ void connector::_send_query_version() {
   logger(dbg_commands, basic) << "connector::_send_query_version";
 
   std::string query("0\0", 2);
-  _process.write(query + _query_ending());
+  query.append(_query_ending());
+  _process.write(query);
 }
 
 /**
@@ -716,7 +723,6 @@ void connector::_send_query_version() {
 void connector::restart_connector() {
   std::lock_guard<std::mutex> lck(_thread_m);
   _thread_action = start;
-  std::cout << "thread action start\n";
   _thread_cv.notify_all();
 }
 
@@ -726,20 +732,16 @@ void connector::restart_connector() {
 void connector::_restart_loop() {
   std::unique_lock<std::mutex> lck(_thread_m);
   _thread_running = true;
-  std::cout << "thread running true\n";
   _thread_cv.notify_all();
   for (;;) {
     // FIXME DBR: do not mix the connector restart and the thread restart
-    _thread_cv.wait(
-        lck, [this] { return _thread_action != none; });
+    _thread_cv.wait(lck, [this] { return _thread_action != none; });
 
-    std::cout << "thread action " << _thread_action << "\n";
     if (_thread_action == stop)
       return;
 
     _thread_action = none;
     _run_restart();
-    std::cout << "thread action none\n";
   }
 }
 

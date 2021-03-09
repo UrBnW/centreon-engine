@@ -249,11 +249,12 @@ class notifier : public checkable {
   std::unordered_set<contact*> get_contacts_to_notify(
       notification_category cat,
       reason_type type,
-      uint32_t& notification_interval, bool& escalated);
+      uint32_t& notification_interval,
+      bool& escalated);
   notifier_type get_notifier_type() const noexcept;
   std::unordered_map<std::string, contact*>& get_contacts() noexcept;
-  std::unordered_map<std::string, contact*> const& get_contacts() const
-      noexcept;
+  std::unordered_map<std::string, contact*> const& get_contacts()
+      const noexcept;
   contactgroup_map_unsafe& get_contactgroups() noexcept;
   contactgroup_map_unsafe const& get_contactgroups() const noexcept;
   void resolve(int& w, int& e);
@@ -323,7 +324,7 @@ class notifier : public checkable {
   bool _retain_status_information;
   bool _retain_nonstatus_information;
   bool _is_being_freshened;
-  
+
   bool _is_volatile;
 
   /*if notification_interval at 0 and is on time period off.
