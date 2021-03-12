@@ -130,29 +130,12 @@ void commands::command::set_listener(
  *
  *  @param[in] right The copy class.
  */
-commands::command::command(commands::command const& right) :
-  _command_line{right._command_line}, _listener{right._listener}, _name{right._name} {
-  if (_listener) {
-    std::function<void()> f{[this] { _listener = nullptr; }};
-    _listener->reg(this, f);
-  }
-}
-
-/**
- *  Default copy operatro.
- *
- *  @param[in] right The copy class.
- *
- *  @return This object.
- */
-//commands::command& commands::command::operator=(
-//    commands::command const& right) {
-//  if (this != &right) {
-//    _command_line = right._command_line;
-//    _listener = right._listener;
-//    _name = right._name;
+//commands::command::command(commands::command const& right) :
+//  _command_line{right._command_line}, _listener{right._listener}, _name{right._name} {
+//  if (_listener) {
+//    std::function<void()> f{[this] { _listener = nullptr; }};
+//    _listener->reg(this, f);
 //  }
-//  return *this;
 //}
 
 /**

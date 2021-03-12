@@ -413,6 +413,10 @@ bool set_cloexec(int fd) {
  *  Do some cleanup before we exit.
  */
 void cleanup() {
+  //FIXME DBR: Are these two function really useful?
+  //engine::commands::command::commands.clear();
+  //engine::commands::connector::connectors.clear();
+
   // Unload modules.
   if (!test_scheduling && !verify_config) {
     checks::checker::deinit();

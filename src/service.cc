@@ -2708,7 +2708,6 @@ void service::disable_flap_detection() {
   handle_flap_detection_disabled();
 }
 
-/* updates service status info */
 /**
  * @brief Updates service status info. Send data to event broker.
  */

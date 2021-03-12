@@ -58,7 +58,7 @@ class command {
           const std::string& command_line,
           command_listener* listener = nullptr);
   virtual ~command() noexcept;
-  command(const command&);
+  command(const command&) = delete;
   command& operator=(const command&) = delete;
   bool operator==(const command& right) const noexcept;
   bool operator!=(const command& right) const noexcept;
