@@ -68,10 +68,9 @@ connector::connector(std::string const& connector_name,
  */
 connector::~connector() noexcept {
   logger(dbg_commands, basic) << "connector::~connector";
-  {
-    std::lock_guard<std::mutex> lck(_lock);
-    _try_to_restart = false;
-  }
+
+  // Close connector properly.
+  _connector_close();
 
   // Wait restart thread.
   {
@@ -81,9 +80,6 @@ connector::~connector() noexcept {
     lck.unlock();
     _restart.join();
   }
-
-  // Close connector properly.
-  _connector_close();
 }
 
 /**
@@ -362,8 +358,11 @@ void connector::_connector_close() {
       << "connector::_connector_close: process=" << &_process;
 
   // Set variable to dosn't restart connector.
-  _try_to_restart = false;
-  _thread_cv.notify_all();
+  {
+    std::lock_guard<std::mutex> lck(_thread_m);
+    _try_to_restart = false;
+    _thread_cv.notify_all();
+  }
 
   // Reset variables.
   _query_quit_ok = false;

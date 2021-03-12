@@ -21,6 +21,7 @@
 
 #include <string>
 #include "com/centreon/engine/commands/command.hh"
+#include "com/centreon/engine/commands/connector.hh"
 #include "com/centreon/engine/namespace.hh"
 
 CCE_BEGIN()
@@ -34,15 +35,16 @@ namespace commands {
  *  provide forward, is more efficiente that a raw command.
  */
 class forward : public command {
+  std::shared_ptr<command> _s_command;
   command* _command;
 
  public:
   forward(const std::string& command_name,
           const std::string& command_line,
-          command& cmd);
-  ~forward() noexcept override;
+          std::shared_ptr<connector>& cmd);
+  ~forward() noexcept = default;
   forward(const forward&) = delete;
-  forward& operator=(const forward& right) = delete;
+  forward& operator=(const forward&) = delete;
   uint64_t run(const std::string& processed_cmd,
                nagios_macros& macros,
                uint32_t timeout) override;

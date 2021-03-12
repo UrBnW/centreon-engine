@@ -629,7 +629,7 @@ std::ostream& operator<<(std::ostream& os, host const& obj) {
   {
     std::ostringstream oss;
     for (int i = 0; i < 6; i++) {
-      std::shared_ptr<notification> s{obj.get_current_notifications()[i]};
+      notification* s{obj.get_current_notifications()[i].get()};
       if (s)
         oss << "  notification_" << i << ": " << *s;
     }
@@ -3427,8 +3427,7 @@ bool host::authorized_by_dependencies(dependency::types dependency_type) const {
     if (dep->get_fail_on(state))
       return false;
 
-    if (state == host::state_up &&
-        !dep->master_host_ptr->has_been_checked() &&
+    if (state == host::state_up && !dep->master_host_ptr->has_been_checked() &&
         dep->get_fail_on_pending())
       return false;
 

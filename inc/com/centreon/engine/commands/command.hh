@@ -54,25 +54,25 @@ class command {
   std::string _name;
 
  public:
-  command(std::string const& name,
-          std::string const& command_line,
+  command(const std::string& name,
+          const std::string& command_line,
           command_listener* listener = nullptr);
   virtual ~command() noexcept;
   command(const command&);
   command& operator=(const command&) = delete;
   bool operator==(const command& right) const noexcept;
   bool operator!=(const command& right) const noexcept;
-  virtual std::string const& get_command_line() const noexcept;
-  virtual std::string const& get_name() const noexcept;
+  virtual const std::string& get_command_line() const noexcept;
+  virtual const std::string& get_name() const noexcept;
   virtual std::string process_cmd(nagios_macros* macros) const;
-  virtual uint64_t run(std::string const& processed_cmd,
+  virtual uint64_t run(const std::string& processed_cmd,
                        nagios_macros& macors,
                        uint32_t timeout) = 0;
-  virtual void run(std::string const& process_cmd,
+  virtual void run(const std::string& process_cmd,
                    nagios_macros& macros,
                    uint32_t timeout,
                    result& res) = 0;
-  virtual void set_command_line(std::string const& command_line);
+  virtual void set_command_line(const std::string& command_line);
   void set_listener(command_listener* listener) noexcept;
   static command_map commands;
 };

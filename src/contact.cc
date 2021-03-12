@@ -917,8 +917,8 @@ bool contact::_to_notify_recovery(notifier::reason_type type
     return false;
   }
 
-  std::shared_ptr<notification> normal_notif =
-      notif.get_current_notifications()[notifier::cat_normal];
+  notification* normal_notif =
+      notif.get_current_notifications()[notifier::cat_normal].get();
   if (!normal_notif || !normal_notif->sent_to(get_name())) {
     logger(dbg_notifications, most)
         << "We shouldn't notify this contact about a "

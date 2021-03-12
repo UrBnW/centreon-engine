@@ -27,12 +27,6 @@
 using namespace com::centreon::engine::logging;
 using namespace com::centreon::engine::commands;
 
-/**************************************
- *                                     *
- *           Public Methods            *
- *                                     *
- **************************************/
-
 /**
  *  Constructor.
  *
@@ -42,19 +36,16 @@ using namespace com::centreon::engine::commands;
  */
 forward::forward(std::string const& command_name,
                  std::string const& command_line,
-                 command& cmd)
-    : command(command_name, command_line, nullptr), _command(&cmd) {
+                 std::shared_ptr<connector>& cmd)
+    : command(command_name, command_line, nullptr),
+      _s_command(cmd),
+      _command(cmd.get()) {
   if (_name.empty())
-    throw(engine_error() << "Could not create a command with an empty name");
+    throw engine_error() << "Could not create a command with an empty name";
   if (_command_line.empty())
-    throw(engine_error() << "Could not create '" << _name
-                         << "' command: command line is empty");
+    throw engine_error() << "Could not create '" << _name
+                         << "' command: command line is empty";
 }
-
-/**
- *  Destructor.
- */
-forward::~forward() noexcept {}
 
 /**
  *  Run a command.
@@ -68,7 +59,7 @@ forward::~forward() noexcept {}
 uint64_t forward::run(std::string const& processed_cmd,
                       nagios_macros& macros,
                       uint32_t timeout) {
-  return (_command->run(processed_cmd, macros, timeout));
+  return _command->run(processed_cmd, macros, timeout);
 }
 
 /**
@@ -84,18 +75,4 @@ void forward::run(std::string const& processed_cmd,
                   uint32_t timeout,
                   result& res) {
   _command->run(processed_cmd, macros, timeout, res);
-  return;
 }
-
-/**
- *  Internal copy.
- *
- *  @param[in] right  The object to copy.
- */
-// void forward::_internal_copy(const forward& right) {
-//  if (this != &right) {
-//    command::operator=(right);
-//    _command = right._command;
-//  }
-//  return;
-//}

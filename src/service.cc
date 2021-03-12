@@ -295,7 +295,7 @@ std::ostream& operator<<(std::ostream& os,
   {
     std::ostringstream oss;
     for (int i = 0; i < 6; i++) {
-      std::shared_ptr<notification> s{obj.get_current_notifications()[i]};
+      notification* s{obj.get_current_notifications()[i].get()};
       if (s)
         oss << "  notification_" << i << ": " << *s;
     }
@@ -485,8 +485,7 @@ std::ostream& operator<<(std::ostream& os,
      << string::ctime(obj.get_last_time_unknown())
      << "\n  last_time_critical:                   "
      << string::ctime(obj.get_last_time_critical())
-     << "\n  has_been_checked:                     "
-     << obj.has_been_checked()
+     << "\n  has_been_checked:                     " << obj.has_been_checked()
      << "\n  is_being_freshened:                   "
      << obj.get_is_being_freshened()
      << "\n  notified_on_unknown:                  "
@@ -1850,8 +1849,7 @@ int service::handle_async_check_result(check_result* queued_check_result) {
       queued_check_result->get_early_timeout(),
       queued_check_result->get_return_code(), nullptr, nullptr);
 
-  if (!(reschedule_check && get_should_be_scheduled() &&
-        has_been_checked()) ||
+  if (!(reschedule_check && get_should_be_scheduled() && has_been_checked()) ||
       !get_checks_enabled()) {
     /* set the checked flag */
     set_has_been_checked(true);
@@ -2319,16 +2317,16 @@ int service::run_async_check(int check_options,
   timeval start_time = {0, 0};
   timeval end_time = {0, 0};
   int res =
-     broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE,
-                          NEBATTR_NONE, this, checkable::check_active,
-                          start_time, end_time, get_check_command().c_str(),
-                          get_latency(), 0.0, 0, false, 0, nullptr, nullptr);
+      broker_service_check(NEBTYPE_SERVICECHECK_ASYNC_PRECHECK, NEBFLAG_NONE,
+                           NEBATTR_NONE, this, checkable::check_active,
+                           start_time, end_time, get_check_command().c_str(),
+                           get_latency(), 0.0, 0, false, 0, nullptr, nullptr);
 
   // Service check was cancelled by NEB module. reschedule check later.
   if (NEBERROR_CALLBACKCANCEL == res) {
     if (preferred_time != nullptr)
       *preferred_time +=
-         static_cast<time_t>(get_check_interval() * config->interval_length());
+          static_cast<time_t>(get_check_interval() * config->interval_length());
     logger(log_runtime_error, basic)
         << "Error: Some broker module cancelled check of service '"
         << get_description() << "' on host '" << get_hostname();
@@ -2337,8 +2335,8 @@ int service::run_async_check(int check_options,
   // Service check was override by NEB module.
   else if (NEBERROR_CALLBACKOVERRIDE == res) {
     logger(dbg_functions, basic)
-      << "Some broker module overrode check of service '" << get_description()
-      << "' on host '" << get_hostname() << "' so we'll bail out";
+        << "Some broker module overrode check of service '" << get_description()
+        << "' on host '" << get_hostname() << "' so we'll bail out";
     return OK;
   }
 

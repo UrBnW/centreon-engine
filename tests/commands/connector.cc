@@ -102,14 +102,14 @@ TEST_F(Connector, NewConnector) {
 }
 
 TEST_F(Connector, ForwardWithoutName) {
-  commands::connector c("test segfault",
-                        "tests/bin_connector_test_run --kill=2");
+  auto c = std::make_shared<commands::connector>(
+      "test segfault", "tests/bin_connector_test_run --kill=2");
   ASSERT_THROW(new commands::forward("", "bar", c), std::exception);
 }
 
 TEST_F(Connector, ForwardWithoutCmd) {
-  commands::connector c("test segfault",
-                        "tests/bin_connector_test_run --kill=2");
+  auto c = std::make_shared<commands::connector>(
+      "test segfault", "tests/bin_connector_test_run --kill=2");
   ASSERT_THROW(new commands::forward("foo", "", c), std::exception);
 }
 

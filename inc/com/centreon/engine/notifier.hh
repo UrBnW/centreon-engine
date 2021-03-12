@@ -260,7 +260,7 @@ class notifier : public checkable {
   void resolve(int& w, int& e);
   std::array<int, MAX_STATE_HISTORY_ENTRIES> const& get_state_history() const;
   std::array<int, MAX_STATE_HISTORY_ENTRIES>& get_state_history();
-  std::array<std::shared_ptr<notification>, 6> const&
+  std::array<std::unique_ptr<notification>, 6> const&
   get_current_notifications() const;
   int get_pending_flex_downtime() const;
   void inc_pending_flex_downtime() noexcept;
@@ -336,7 +336,7 @@ class notifier : public checkable {
   // reason_type _type;
   std::unordered_map<std::string, contact*> _contacts;
   contactgroup_map_unsafe _contact_groups;
-  std::array<std::shared_ptr<notification>, 6> _notification;
+  std::array<std::unique_ptr<notification>, 6> _notification;
   std::array<int, MAX_STATE_HISTORY_ENTRIES> _state_history;
   int _pending_flex_downtime;
 };
